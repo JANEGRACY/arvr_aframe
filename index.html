@@ -2,65 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>AR Model Placement</title>
-
+  <title>AR Tap-to-Place Model</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 </head>
 
 <body style="margin: 0; overflow: hidden;">
 
-<script>
-AFRAME.registerComponent('place-model', {
-  init: function () {
-    const scene = this.el;
-
-    scene.addEventListener('click', () => {
-
-      const model = document.createElement('a-entity');
-
-      model.setAttribute('gltf-model', '#model');
-
-      // Place in front of camera
-      model.setAttribute('position', '0 0 -1.5');
-
-      model.setAttribute('scale', '0.5 0.5 0.5');
-
-      model.setAttribute('animation',
-        'property: rotation; to: 0 360 0; loop: true; dur: 8000');
-
-      scene.appendChild(model);
-    });
-  }
-});
-</script>
-
-<!-- ✅ AR Scene -->
 <a-scene
-  place-model
   embedded
   xr-mode-ui="enabled: true"
   webxr="requiredFeatures: hit-test, local-floor"
-  renderer="colorManagement: true;"
   background="color: transparent">
 
-  <!-- ✅ Assets -->
+  <!-- Assets -->
   <a-assets>
     <a-asset-item id="model"
       src="https://cdn.aframe.io/test-models/models/Duck/glTF-Binary/Duck.glb">
     </a-asset-item>
   </a-assets>
 
-  <!-- Light -->
-  <a-light type="ambient" intensity="1"></a-light>
-  <a-light type="directional" position="1 2 1"></a-light>
+  <!-- Reticle (shows detected plane) -->
+  <a-entity id="reticle" 
+            visible="false"
+            position="0 0 0" 
+            geometry="primitive: ring; radiusInner: 0.05; radiusOuter: 0.06" 
+            material="color: yellow; shader: flat">
+  </a-entity>
 
   <!-- Camera -->
   <a-camera></a-camera>
 
 </a-scene>
+
+<script>
+AFRAME.registerComponent('ar-tap-place', {
+  init: function () {
+    const sceneEl = this.el;
+    const reticle = document.getElementById('reticle');
+
+    // Wait for AR session
+    sceneEl.addEventListener('enter-vr', () => {
+      const session = sceneEl.renderer.xr.getSession();
+      if (!session) return;
+
+      const viewerSpace = session.requestReferenceSpace('viewer');
+      const xrHitTestSourcePromise = viewerSpace.then(refSpace => {
+        return session.requestHitTestSource({ space: refSpace });
+      });
+
+      session.requestAnimationFrame(function onXRFrame(time, frame) {
+        const xrFrame = frame;
+        const referenceSpace = sceneEl.renderer.xr.getReferenceSpace();
+        
+        if (xrFrame) {
+          const hitTestSourcePromise = xrHitTestSourcePromise;
+          hitTestSourcePromise.then(hitTestSource => {
+            const hitTestResults = xrFrame.getHitTestResults(hitTestSource);
+            if (hitTestResults.length > 0) {
+              const hit = hitTestResults[0];
+              const pose = hit.getPose(referenceSpace);
+              reticle.object3D.position.set(
+                pose.transform.position.x,
+                pose.transform.position.y,
+                pose.transform.position.z
+              );
+              reticle.object3D.visible = true;
+            } else {
+              reticle.object3D.visible = false;
+            }
+          });
+        }
+        session.requestAnimationFrame(onXRFrame);
+      });
+    });
+
+    // Tap to place model
+    sceneEl.addEventListener('click', () => {
+      if (!reticle.object3D.visible) return;
+
+      const model = document.createElement('a-entity');
+      model.setAttribute('gltf-model', '#model');
+      model.setAttribute('position', reticle.getAttribute('position'));
+      model.setAttribute('scale', '0.5 0.5 0.5');
+      model.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 8000');
+
+      sceneEl.appendChild(model);
+    });
+  }
+});
+
+// Attach component to the scene
+document.querySelector('a-scene').setAttribute('ar-tap-place', '');
+</script>
 
 </body>
 </html>
