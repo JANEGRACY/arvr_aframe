@@ -21,17 +21,17 @@ AFRAME.registerComponent('place-model', {
 
       const model = document.createElement('a-entity');
 
-      // 🔹 Load GLB model
-      model.setAttribute('gltf-model', 'Sofa.glb');
+      // ✅ Use GLB or GLTF file
+      model.setAttribute('gltf-model', 'nighttable.glb');
 
-      // 🔹 Position in front
+      // ✅ Position in front of camera
       model.setAttribute('position', '0 0 -2');
 
-      // 🔹 Adjust scale (IMPORTANT)
+      // ✅ Scale
       model.setAttribute('scale', '0.5 0.5 0.5');
 
-      // 🔹 Rotate slowly (extra marks)
-      model.setAttribute('animation', 
+      // ✅ Rotation animation
+      model.setAttribute('animation',
         'property: rotation; to: 0 360 0; loop: true; dur: 8000');
 
       scene.appendChild(model);
@@ -42,8 +42,7 @@ AFRAME.registerComponent('place-model', {
 
 <a-scene
   embedded
-  xr-mode-ui="enabled: true"
-  webxr="requiredFeatures: hit-test, local-floor"
+  vr-mode-ui="enabled: true"
   renderer="colorManagement: true;"
   place-model>
 
