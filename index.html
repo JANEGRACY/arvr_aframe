@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3D Model AR</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+</head>
+
+<body style="margin: 0; overflow: hidden;">
+
+<script>
+AFRAME.registerComponent('place-model', {
+  init: function () {
+    const scene = this.el.sceneEl;
+
+    scene.addEventListener('click', () => {
+
+      const model = document.createElement('a-entity');
+
+      // 🔹 Load GLB model
+      model.setAttribute('gltf-model', 'Sofa.glb');
+
+      // 🔹 Position in front
+      model.setAttribute('position', '0 0 -2');
+
+      // 🔹 Adjust scale (IMPORTANT)
+      model.setAttribute('scale', '0.5 0.5 0.5');
+
+      // 🔹 Rotate slowly (extra marks)
+      model.setAttribute('animation', 
+        'property: rotation; to: 0 360 0; loop: true; dur: 8000');
+
+      scene.appendChild(model);
+    });
+  }
+});
+</script>
+
+<a-scene
+  embedded
+  xr-mode-ui="enabled: true"
+  webxr="requiredFeatures: hit-test, local-floor"
+  renderer="colorManagement: true;"
+  place-model>
+
+  <!-- Camera -->
+  <a-camera position="0 1.6 0"></a-camera>
+
+</a-scene>
+
+</body>
+</html>
