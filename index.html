@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>3D Model AR</title>
+  <title>AR Model Placement</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 </head>
 
@@ -16,45 +17,48 @@ AFRAME.registerComponent('place-model', {
   init: function () {
     const scene = this.el;
 
-    scene.addEventListener('loaded', () => {
+    scene.addEventListener('click', () => {
 
-      scene.addEventListener('click', () => {
+      const model = document.createElement('a-entity');
 
-        const model = document.createElement('a-entity');
+      model.setAttribute('gltf-model', '#model');
 
-        model.setAttribute('gltf-model', '#tableModel');
+      // Place in front of camera
+      model.setAttribute('position', '0 0 -1.5');
 
-        model.setAttribute('position', '0 1.2 -2');
-        model.setAttribute('scale', '0.5 0.5 0.5');
+      model.setAttribute('scale', '0.5 0.5 0.5');
 
-        model.setAttribute('animation',
-          'property: rotation; to: 0 360 0; loop: true; dur: 8000');
+      model.setAttribute('animation',
+        'property: rotation; to: 0 360 0; loop: true; dur: 8000');
 
-        scene.appendChild(model);
-      });
-
+      scene.appendChild(model);
     });
   }
 });
 </script>
 
-<a-scene place-model background="color: #ECECEC">
+<!-- ✅ AR Scene -->
+<a-scene
+  place-model
+  embedded
+  xr-mode-ui="enabled: true"
+  webxr="requiredFeatures: hit-test, local-floor"
+  renderer="colorManagement: true;"
+  background="color: transparent">
 
-  <!-- ✅ Sample Model -->
+  <!-- ✅ Assets -->
   <a-assets>
-    <a-asset-item id="tableModel"
+    <a-asset-item id="model"
       src="https://cdn.aframe.io/test-models/models/Duck/glTF-Binary/Duck.glb">
     </a-asset-item>
   </a-assets>
 
-  <!-- Lights -->
+  <!-- Light -->
   <a-light type="ambient" intensity="1"></a-light>
   <a-light type="directional" position="1 2 1"></a-light>
 
   <!-- Camera -->
-  <a-camera position="0 1.6 0">
-    <a-cursor></a-cursor>
-  </a-camera>
+  <a-camera></a-camera>
 
 </a-scene>
 
